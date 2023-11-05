@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {  
+      "target": "es5",  // 编译目标                        
+      "module": "ESNext", // 模块规范                      
+      "strict": true,                         
+      "skipLibCheck": true,                    
+      "forceConsistentCasingInFileNames": true 
+    }
+  }

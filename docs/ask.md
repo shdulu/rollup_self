@@ -1,0 +1,5 @@
+- vite 构建 开发环境使用的 esModule 生成环境使用的是 rollup
+- rollup 插件可以和 vite 插件复用，
+- webpack 和 rollup 都是支持 esm 和 commonjs，但是打包出来的结果 webpack 只能是 commonjs。rollup 可以打包 commonjs 和 esm
+- treeshaking
+- esBuild 是什么东西
