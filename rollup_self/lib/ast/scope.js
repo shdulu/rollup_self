@@ -6,9 +6,14 @@ class Scope {
     this.parent = options.parent;
     //此作用域内定义的变量
     this.names = options.names || [];
+    this.isBlock = !!options.isBlock;
   }
-  add(name) {
-    this.names.push(name);
+  add(name, isBlockDeclaration) {
+    if (!isBlockDeclaration && this.isBlock) {
+      this.parent.add(name, isBlockDeclaration);
+    } else {
+      this.names.push(name);
+    }
   }
   findDefiningScope(name) {
     if (this.names.includes(name)) {

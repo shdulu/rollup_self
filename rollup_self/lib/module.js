@@ -2,7 +2,7 @@ const MagicString = require("magic-string");
 const { parse } = require("acorn");
 let analyse = require("./ast/analyse");
 const { hasOwnProperty } = require("./utils");
-
+const SYSTEM_VARS = ["console", "log"];
 class Module {
   constructor({ code, path, bundle }) {
     this.code = new MagicString(code, { filename: path });
@@ -22,14 +22,17 @@ class Module {
     this.definitions = {};
     // 存放变量修改语句
     this.modifications = {};
+    // 重命名变量
+    this.canonicalNames = {}
     // 分析语法树
-    debugger
+    debugger;
     analyse(this.ast, this.code, this);
   }
   expandAllStatements() {
     let allStatements = [];
     this.ast.body.forEach((statement) => {
       if (statement.type === "ImportDeclaration") return;
+      if (statement.type === "VariableDeclaration") return;
       let statements = this.expandStatement(statement);
       allStatements.push(...statements);
     });
@@ -70,18 +73,37 @@ class Module {
       // 获取导入的模块
       // source 当前模块的相对路径 this.path 当前模块的绝对路径
       const importedModule = this.bundle.fetchModule(source, this.path);
-      debugger
+      debugger;
       const { localName } = importedModule.exports[importName]; // msg.js exports[name]
       return importedModule.define(localName);
     } else {
       // 非导入模块
-      debugger
+      debugger;
       let statement = this.definitions[name];
+      if (statement) {
+        if (statement._included) {
+          return [];
+        } else {
+          this.expandStatement(statement);
+        }
+      } else {
+        if (SYSTEM_VARS.includes(name)) {
+          return [];
+        } else {
+          throw new Error(`变量${name}既没有从外部导入，也没有在当前模块声明`);
+        }
+      }
       if (statement && !statement._included) {
         return this.expandStatement(statement);
       }
       return [];
     }
+  }
+  rename(name, replacement) {
+    this.canonicalNames[name] = replacement
+  }
+  getCanonicalName(name) {
+    return this.canonicalNames[name] || name
   }
 }
 

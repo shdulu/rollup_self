@@ -52,9 +52,9 @@ function analyse(ast, code, module) {
   // 先创建顶级作用域
   let currentScope = new Scope({ name: "模块内的顶级作用域" });
   ast.body.forEach((statement) => {
-    function addToScope(name) {
-      currentScope.add(name); // 把此变量名添加到当前的作用域变量中
-      if (!currentScope.parent) {
+    function addToScope(name, isBlockDeclaration) {
+      currentScope.add(name, isBlockDeclaration); // 把此变量名添加到当前的作用域变量中
+      if (!currentScope.parent || (currentScope.isBlock && !isBlockDeclaration)) {
         // 顶级作用域
         statement._defines[name] = true; // 表示此语句定义了一个顶级变量
         // 定义此顶级变量的语句保存下来
@@ -85,15 +85,15 @@ function analyse(ast, code, module) {
       }
 
       if (node.type === "AssignmentExpression") {
-        debugger
+        debugger;
         addNode(node.left, true);
       } else if (node.type === "UpdateExpression") {
-        debugger
+        debugger;
         addNode(node.argument);
       }
     }
     // 深度优先递归循环 AST 语法树
-    debugger
+    debugger;
     walk(statement, {
       // 深度优先递归循环进入
       enter(node) {
@@ -109,12 +109,20 @@ function analyse(ast, code, module) {
               name: node.id.name,
               parent: currentScope,
               names,
+              isBlock: false, // 函数创建的不是一个块作用域
             });
             break;
           case "VariableDeclaration":
             node.declarations.forEach((declaration) => {
-              addToScope(declaration.id.name);
+              if (node.kind === "let" || node.kind === "const") {
+                addToScope(declaration.id.name, true);
+              } else {
+                addToScope(declaration.id.name);
+              }
             });
+            break;
+          case "BlockStatement":
+            newScope = new Scope({ parent: currentScope, isBlock: true });
             break;
           default:
             break;
